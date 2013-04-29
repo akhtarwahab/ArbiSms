@@ -130,7 +130,7 @@ Desktop.ini
 #############
 ## Python
 #############
-
+.idea/
 *.py[co]
 
 # Packages
