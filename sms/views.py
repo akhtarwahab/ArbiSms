@@ -1,24 +1,43 @@
 from django.shortcuts import render, redirect, render_to_response
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
-from django.contrib.auth.models import User
-from django.http import Http404
-from django.core.exceptions import ObjectDoesNotExist
 from sms.forms import AuthenticateForm, UserCreateForm, ServerForm
 from sms.models import Server
+from django.template import RequestContext
+from scrapyd import scrapyd
 
+wrapper = None
 
-def index(request, auth_form=None, user_form=None):
+def main(request, auth_form=None, user_form=None):
     # User is logged in
     if request.user.is_authenticated():
-        server_form = ServerForm()
         user = request.user
-        ribbits_self = Server.objects.filter(user=user.id)
-        return render(request,
-                      'buddies.html',
-                      {'server_form': server_form, 'user': user,
-                       'next_url': '/', })
+        if request.method == "POST" and request.is_ajax():
+            server_name = request.POST['name']
+            server_address = request.POST['address']
+            server_to_delete = Server.objects.filter(user_id=user.id, server_address=server_address,
+                                                     server_name=server_name)
+            server_to_delete.delete()
+            servers_list = []
+            servers = Server.objects.filter(user_id=user.id)
+            for server in servers:
+                dict_server = {'server_name': server.server_name, 'server_address': server.server_address}
+                servers_list.append(dict_server)
+            ctx = {'servers': servers_list}
+            return render_to_response('server_table.html', ctx)
+
+        else:
+            server_form = ServerForm()
+            servers = Server.objects.filter(user_id=user.id)
+            servers_list = []
+            for server in servers:
+                dict_server = {'server_name': server.server_name, 'server_address': server.server_address}
+                servers_list.append(dict_server)
+
+            return render(request,
+                          'servers.html',
+                          {'server_form': server_form, 'user': user,
+                           'next_url': '/', 'servers': servers_list})
     else:
         # User is not logged in
         auth_form = auth_form or AuthenticateForm()
@@ -38,7 +57,7 @@ def login_view(request):
             return redirect('/')
         else:
             # Failure
-            return index(request, auth_form=form)
+            return main(request, auth_form=form)
     return redirect('/')
 
 
@@ -58,76 +77,148 @@ def signup(request):
             login(request, user)
             return redirect('/')
         else:
-            return index(request, user_form=user_form)
+            return main(request, user_form=user_form)
     return redirect('/')
 
 
 @login_required
-def public(request, server_form=None):
-    server_form = server_form or ServerForm()
-    server_names = Server.objects.get('server_name')
-    print server_names
+def server_errors(request, server_form=None):
+    user = request.user
+    servers = Server.objects.filter(user_id=user.id)
+    servers_list = []
+
+    for server in servers:
+        dict_server = {'server_name': server.server_name, 'server_address': server.server_address}
+        servers_list.append(dict_server)
+
     return render(request,
-                  'public.html',
-                  {'ribbit_form': server_form, 'next_url': '/ribbits',
-                   'ribbits': server_names, 'username': request.user.username})
+                  'servers.html',
+                  {'server_form': server_form, 'user': user,
+                   'next_url': '/', 'servers': servers_list})
 
 
 @login_required
-def submit(request):
-    ctx={}
+def add_server(request):
     if request.method == "POST":
         server_form = ServerForm(data=request.POST)
         next_url = request.POST.get("next_url", "/")
         if server_form.is_valid():
-            ribbit = server_form.save(commit=False)
-            ribbit.user = request.user
-            ribbit.save()
-            return redirect(next_url,)
+            server = server_form.save(commit=False)
+            server.user = request.user
+            server.save()
+            if not next_url:
+                next_url = "/"
+            return redirect(next_url)
         else:
-            return public(request, server_form)
+            return server_errors(request, server_form)
     return redirect('/')
 
 
-def get_latest(user):
-    try:
-        return user.ribbit_set.order_by('id').reverse()[0]
-    except IndexError:
-        return ""
+def projects(request):
+    server_form = ServerForm()
+    if request.method == 'POST':
+        if request.POST['action'] == 'latest_version':
+
+            list_version = wrapper.list_version(request.POST['project'].replace('\n', '').strip())
+            ctx = {'version': list_version[-1], 'versions': [], 'project': request.POST['project'],
+                   'id': request.POST['project'].replace('\n', '').strip() + "_versions"}
+            return render_to_response('versions.html', ctx, context_instance=RequestContext(request))
+
+        elif request.POST['action'] == 'all_versions':
+
+            list_version = wrapper.list_version(request.POST['project'].replace('\n', '').strip())
+            ctx = {'version': "", 'versions': list_version[:-1], 'project': request.POST['project']}
+            return render_to_response('versions.html', ctx, context_instance=RequestContext(request))
+
+        elif request.POST['action'] == 'projects':
+            global wrapper
+            wrapper = scrapyd(url=request.POST['address'])
+            projects = wrapper.list_projects()
+            ctx = {'server_form': server_form, 'projects': projects}
+
+            return render_to_response('projects.html', ctx, context_instance=RequestContext(request))
+
+        elif request.POST['action'] == 'delete':
+
+            if request.POST['type'] == 'project':
+                result = wrapper.delete_project(request.POST['project'])
+            elif request.POST['type'] == 'version':
+                result = wrapper.delete_version(request.POST['project'], request.POST['version'])
+
+            if result == 'Success':
+                projects = wrapper.list_projects()
+                ctx = {'projects': projects}
+                return render_to_response('projects_table.html', ctx, context_instance=RequestContext(request))
+    else:
+        return redirect('/')
 
 
-@login_required
-def users(request, username="", ribbit_form=None):
-    if username:
-        # Show a profile
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            raise Http404
-        ribbits = Server.objects.filter(user=user.id)
-        if username == request.user.username or request.user.profile.follows.filter(user__username=username):
-            # Self Profile
-            return render(request, 'user.html', {'user': user, 'ribbits': ribbits, })
-        return render(request, 'user.html', {'user': user, 'ribbits': ribbits, 'follow': True, })
-    users = User.objects.all().annotate(ribbit_count=Count('ribbit'))
-    ribbits = map(get_latest, users)
-    obj = zip(users, ribbits)
-    ribbit_form = ribbit_form or ServerForm()
-    return render(request,
-                  'profiles.html',
-                  {'obj': obj, 'next_url': '/users/',
-                   'ribbit_form': ribbit_form,
-                   'username': request.user.username, })
+def jobs(request):
+    server_form = ServerForm()
+    if request.method == "POST" and not request.is_ajax():
+
+        project = request.POST['project']
+        jobs = wrapper.list_jobs(project)
+        ctx = jobs
+        ctx['project'] = request.POST['project']
+        ctx['server_form'] = server_form
+        return render_to_response('jobs.html', ctx, context_instance=RequestContext(request))
+
+    elif request.method == "POST" and request.is_ajax():
+        if request.POST['action'] == 'log':
+            log = wrapper.access_log(request.POST['project'], request.POST['spider'], request.POST['id'])
+            if not log:
+                log = "No Log Found"
+            data = log.split('\n')
+            ctx = {'item': 'log', 'data': data, 'job_id': request.POST['id']}
+            return render_to_response('log_items.html', ctx, context_instance=RequestContext(request))
+
+        elif request.POST['action'] == 'item':
+            item = wrapper.access_items(request.POST['project'], request.POST['spider'], request.POST['id'])
+            if not item:
+                item = "No Item Found"
+            data = item.split('\n')
+            ctx = {'item': 'items', 'data': data, 'job_id': request.POST['id']}
+            return render_to_response('log_items.html', ctx, context_instance=RequestContext(request))
+    else:
+        return redirect('/')
 
 
-@login_required
-def follow(request):
-    if request.method == "POST":
-        follow_id = request.POST.get('follow', False)
-        if follow_id:
-            try:
-                user = User.objects.get(id=follow_id)
-                request.user.profile.follows.add(user.profile)
-            except ObjectDoesNotExist:
-                return redirect('/users/')
-    return redirect('/users/')
+def spiders(request):
+    server_form = ServerForm()
+    if request.method == 'POST' and not request.is_ajax():
+        spider = wrapper.list_spiders(request.POST['project'])
+        ctx = {'server_form': server_form, 'spiders': spider, 'project': request.POST['project']}
+        return render_to_response('spiders.html', ctx, context_instance=RequestContext(request))
+
+    elif request.method == 'POST' and request.is_ajax():
+
+        if request.POST['action'] == "schedule":
+            schedule = wrapper.run_spider(request.POST['project'], request.POST['spider'], request.POST['cache'])
+            if 'result' in schedule:
+                msg = "Spider Scheduled Successfully, Job Id is :  " + schedule['result']
+            if 'error' in schedule:
+                msg = schedule['error']
+
+            ctx = {'data': [msg]}
+            return render_to_response('log_items.html', ctx, context_instance=RequestContext(request))
+
+        elif request.POST['action'] == "stop":
+            project = request.POST['project']
+            spider = request.POST['spider']
+            jobs = wrapper.list_jobs(project)
+            spider_job = ''
+            for job in jobs['running']:
+                if job['spider'] == spider:
+                    spider_job = job['id']
+                    break
+
+            if spider_job:
+                response = wrapper.stop_spider(project, spider_job)
+            else:
+                response = "No Running Job For This Spider"
+            ctx = {'data': [response]}
+            return render_to_response('log_items.html', ctx, context_instance=RequestContext(request))
+
+    else:
+        return redirect('/')

@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django import forms
 from django.utils.html import strip_tags
 from sms.models import Server
+import re
+import requests
 
 
 class UserCreateForm(UserCreationForm):
@@ -32,7 +34,6 @@ class AuthenticateForm(AuthenticationForm):
     def is_valid(self):
         form = super(AuthenticateForm, self).is_valid()
         for f, error in self.errors.iteritems():
-            print f
             if f != '__all__':
                 self.fields[f].widget.attrs.update({'class': 'error', 'value': strip_tags(error)})
         return form
@@ -41,10 +42,25 @@ class AuthenticateForm(AuthenticationForm):
 class ServerForm(forms.ModelForm):
     server_name = forms.CharField(required=True, widget=forms.widgets.TextInput(attrs={'placeholder': 'Server Name'}))
     server_address = forms.CharField(required=True, widget=forms.widgets.TextInput(attrs={'placeholder': 'Server Url'}))
+
+
+    def clean_server_address(self):
+        url = self['server_address'].value()
+        if 'http:' not in url:
+            url = 'http://%s' % url
+        if url[-1] not in '/':
+            url += '/'
+        try:
+            result = requests.get(url)
+            if not re.search('title[^>]*>[s|S]crapyd</title>', result.text):
+                raise forms.ValidationError("Invalid server Address")
+        except:
+            raise forms.ValidationError("Invalid server Address")
+        return url
+
     def is_valid(self):
         form = super(ServerForm, self).is_valid()
         for f in self.errors.iterkeys():
-            print f
             if f != '__all__':
                 self.fields[f].widget.attrs.update({'class': 'error smsText'})
         return form

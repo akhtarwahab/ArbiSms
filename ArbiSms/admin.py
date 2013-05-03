@@ -1,9 +1,6 @@
 from django.contrib import admin
 from sms.models import Server, Jobs
 
-__author__ = 'Akhter Wahab'
-
-
 class ServerAdmin(admin.ModelAdmin):
     pass
 
