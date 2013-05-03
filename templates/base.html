@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>SMS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le styles -->
+    <script src="{{ STATIC_URL }}scripts/jquery-1.7.2.min.js"></script>
+    <script src="{{ STATIC_URL }}bootstrap.min.js"></script>
+    <link href="{{ STATIC_URL }}bootstrap.css" rel="stylesheet"/>
+    <link href="{{ STATIC_URL }}bootstrap-responsive.css" rel="stylesheet"/>
+
+    <style type="text/css">
+        body {
+            padding-top: 60px;
+            padding-bottom: 40px;
+        }
+    </style>
+
+</head>
+<body>
+<header>
+    <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span12">
+                    </div>
+                </div>
+
+                <p class="brand">
+
+                    ArbiSMS</p>
+                {% block login %}
+                    <a class="brand" href="/">Home</a>
+                    <form action="/logout">
+                        <button class="pull-right " type="submit" id="btnLogOut" value="Log Out">Log Out</button>
+                    </form>
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="row-fluid">
+    <div class="span12">
+    </div>
+
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="span12">
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="span8">
+
+                {% block content %}
+                    <img src="{{ STATIC_URL }}gfx/logo1.png">
+                {% endblock %}
+            </div>
+
+            <div class="span4">
+                {% block flash %}
+                    {% if auth_form.non_field_errors or user_form.non_field_errors%}
+                        <div class="flash error">
+                            {{ auth_form.non_field_errors }}
+                            {{ user_form.non_field_errors }}
+
+                        </div>
+                    {% endif %}
+                    {% if notice %}
+                        <div class="flash notice">
+                            {{ notice }}
+                        </div>
+                    {% endif %}
+                {% endblock %}
+                {% block signup %}
+                    <div class="panel right">
+                        <h1>Add Server</h1>
+
+                        <form action="/submit" method="post">
+                            {% for field in server_form %}{% csrf_token %}
+                                {{ field }}<br>
+                                {{ server_form.errors }}<br>
+                            {% endfor %}
+                            <input type="hidden" value="{{ next_url }}" name="next_url">
+                            <input type="submit" value="Add Server">
+                        </form>
+
+                    </div>
+                {% endblock %}
+            </div>
+
+
+   </div>
+    </div>
+
+</div>
+
+<div id="footer">
+
+        <p class="muted credit">
+           Powered By Arbisoft &copy; - All Rights Reserved
+        </p>
+
+</div>
+
+</body>
+
+
+</html>

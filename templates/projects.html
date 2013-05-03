@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class='form-actions'>
+        <h2> Projects</h2>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="span12" id="project_list">
+                {% include "projects_table.html" %}
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+
+        function get_latest_version(project) {
+
+            var data = {
+                "csrfmiddlewaretoken": '{{ csrf_token }}',
+                "project": project,
+                "action": 'latest_version'
+
+            };
+            $.ajax({
+                data: data,
+                type: "POST",
+                url: "/projects/",
+                success: function (response) {
+                    $('#' + project).append(response);
+                    $('a#' + project).removeAttr("onclick");
+                }
+            });
+        }
+
+        function get_versions(project) {
+
+            var data = {
+                "csrfmiddlewaretoken": '{{ csrf_token }}',
+                "project": project.replace('_versions', ''),
+                "action": 'all_versions'
+            };
+            $.ajax({
+                data: data,
+                type: "POST",
+                url: "/projects/",
+                success: function (response) {
+                    $('#' + project).replaceWith(response);
+                }
+            });
+        }
+
+        function confirm_deletion(project,type,version){
+
+            msg="Do you want to delete "+type+" ";
+            if (type=='version'){
+
+                msg=msg+version;
+            }
+            else{
+
+                msg=msg+project
+            }
+
+            if(confirm(msg)){
+
+                var data = {
+                    "csrfmiddlewaretoken": '{{ csrf_token }}',
+                    "project": project,
+                    "type":type,
+                    "version":version,
+                    "action": "delete"
+                };
+                $.ajax({
+                    data: data,
+                    type: "POST",
+                    url: "/projects/",
+                    success: function (response) {
+                        $('#project_list').replaceWith(response);
+                    }
+                });
+            }
+        }
+
+    </script>
+
+{% endblock %}

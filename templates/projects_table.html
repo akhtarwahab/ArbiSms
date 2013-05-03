@@ -1,0 +1,41 @@
+<div class="span12" id="project_list">
+    <table class="table table-stripped">
+        <thead>
+        <tr>
+            <th>Project Name</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for project in projects %}
+            <tr>
+                <td id={{ project }}>
+                    <a href="javascript:void(0);" onclick="get_latest_version('{{ project }}');"
+                       id={{ project }}>{{ project }}</a>
+                </td>
+                <td class='brand'>
+                    <form style='float: left; padding-left: 5px; padding-right: 5px' action="/projects/spiders"
+                          method="POST">
+                        {% csrf_token %}
+
+                        <input type="hidden" name="project" id="project" value={{ project }}>
+                        <button class="btn" type="submit" id={{ project }} name= {{ project }}>Spiders
+                        </button>
+                    </form>
+
+                    <form style='float: left; padding-left: 5px; padding-right: 5px' action="/projects/jobs"
+                          method="POST">
+                        {% csrf_token %}
+
+                        <input type="hidden" name="project" id="project" value={{ project }}>
+                        <button class="btn" type="submit" id={{ project }} name= {{ project }}>jobs
+                        </button>
+                    </form>
+
+                    <button class="btn btn-danger" onclick="confirm_deletion('{{ project }}','project','')" type="button" id={{ project }}>
+                        Delete </button>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <div class='form-actions'>
+        <h2>Jobs</h2>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class='form-actions'>
+                    <h4>Finished Jobs</h4>
+                </div>
+                <table class="table table-stripped">
+                    <thead>
+                    <tr>
+                        <th>Spider</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Id</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for job in finished %}
+                        <tr>
+                            <td id={{ project }}>
+                                <a href="#" onclick="" id= {{ job.spider }}>{{ job.spider }}</a>
+                            </td>
+                            <td id={{ project }}>
+                                <a href="#" onclick="" id= {{ job }}>{{ job.start_time }}</a>
+                            </td>
+                            <td id={{ project }}>
+                                <a href="#" onclick="" id= {{ job }}>{{ job.end_time }}</a>
+                            </td>
+                            <td id={{ project }}>
+                                <a href="#" onclick="" id= {{ job }}>{{ job.id }}</a>
+                            </td>
+
+                            <td id={{ project }}>
+                                <button class='btn btn-primary'
+                                        onclick="get_log_item('{{ project }}','{{ job.spider }}','{{ job.id }}' ,'log')">
+                                    Log
+                                </button>
+                            </td>
+
+                            <td id={{ project }}>
+                                <button class='btn btn-primary'
+                                        onclick="get_log_item('{{ project }}','{{ job.spider }}','{{ job.id }}' ,'item')">
+                                    Items
+                                </button>
+                            </td>
+
+                        </tr>
+                    {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class='form-actions'>
+                    <h4>
+                        Running Jobs
+
+                    </h4>
+                </div>
+                <table class="table table-stripped">
+                    <thead>
+                    <tr>
+                        <th>Spider</th>
+                        <th>Id</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for job in running %}
+                        <tr>
+                            <td id={{ project }}>
+                                <a href="#" onclick="" id= {{ job.spider }}>{{ job.spider }}</a>
+                            </td>
+
+
+                            <td id={{ project }}>
+                                <a href="#" onclick="" id= {{ job }}>{{ job.id }}</a>
+                            </td>
+
+                            <td id={{ project }}>
+                                <button class='btn btn-primary'
+                                        onclick="get_log_item('{{ project }}','{{ job.spider }}','{{ job.id }}' ,'log')">
+                                    Log
+                                </button>
+                            </td>
+
+                            <td id={{ project }}>
+                                <button class='btn btn-primary'
+                                        onclick="get_log_item('{{ project }}','{{ job.spider }}','{{ job.id }}' ,'item')">
+                                    Items
+                                </button>
+                            </td>
+
+                        </tr>
+                    {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class='form-actions'>
+                    <h4>
+                         Pending Jobs
+
+                    </h4>
+                </div>
+                <table class="table table-stripped">
+                    <thead>
+                    <tr>
+                        <th>Spider</th>
+                        <th>Id</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for job in pending %}
+                        <tr>
+                            <td id={{ project }}>
+                                <a href="#" onclick="" id= {{ job.spider }}>{{ job.spider }}</a>
+                            </td>
+                            <td id={{ project }}>
+                                <a href="#" onclick="" id= {{ job }}>{{ job.id }}</a>
+                            </td>
+
+                        </tr>
+                    {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="box-config-modal" class="modal hide fade in">
+    </div>
+
+
+    <script type="text/javascript">
+
+        function get_log_item(project, spider, id, action) {
+
+
+            var data = {
+                'project': project,
+                'spider': spider,
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id': id,
+                'action': action
+            };
+
+            $.ajax({
+                data: data,
+                type: "POST",
+                url: "/projects/jobs",
+                success: function (response) {
+                    $("#box-config-modal").html(response).modal('show');
+                }
+            });
+        }
+
+
+    </script>
+{% endblock %}

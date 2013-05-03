@@ -1,0 +1,31 @@
+<div id="server_table">
+    <table class="table table-stripped">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Address</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for server in servers %}
+            <tr>
+                <td>{{ server.server_name }}</td>
+                <td>{{ server.server_address }}</td>
+                <td>
+                    <form style='float: left; padding: 5px;' action="/projects/" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="address" id="address" value={{ server.server_address }}>
+                        <input type="hidden" name="action" id="action" value='projects'>
+                        <button class="btn" type="submit" id='view_projects'> View Projects
+                        </button>
+                    </form>
+                </td>
+                <td>
+                    <button class="btn btn-danger" onclick="server_deletion('{{ server.server_name }}','{{ server.server_address}}')" type="button"
+                            id={{ project }} name= {{ project }}>Delete
+                    </button>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>

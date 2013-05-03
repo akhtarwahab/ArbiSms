@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block login %}
+    {% with user.username as username %}
+        {{ block.super }}
+    {% endwith %}
+{% endblock %}
+
+{% block signup %}
+    <div class="panel right">
+        <h1>Add Server</h1>
+
+
+        <form action="/submit" method="post">
+            {% for field in server_form %}{% csrf_token %}
+                {{ field }} <br>
+                {{ field.errors }}
+            {% endfor %}
+            <input type="hidden" value="{{ next_url }}" name="next_url">
+            <input type="submit" value="Add Server">
+        </form>
+
+    </div>
+{% endblock %}
+{% block content %}
+    <div class="panel left">
+        <h1>My Servers</h1>
+
+        <div id="server_table">
+
+            {% include "server_table.html" %}
+        </div>
+    </div>
+
+
+    <script type="text/javascript">
+        function server_deletion(name, address) {
+
+            if (confirm("Do you want to delete server " + name)) {
+                var data = {
+                    "csrfmiddlewaretoken": '{{ csrf_token }}',
+                    "name": name,
+                    "address": address,
+                    "action": "delete"
+                };
+                $.ajax({
+                    data: data,
+                    type: "POST",
+                    url: "/",
+                    success: function (response) {
+                        $('#server_table').replaceWith(response);
+                    }
+                });
+
+            }
+
+        }
+
+    </script>
+{% endblock %}
+

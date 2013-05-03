@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class='form-actions'>
+        <h2>{{ project }} Spiders   </h2>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="span12">
+                <table class="table table-stripped">
+                    <thead>
+                    <tr>
+                        <th>Spider Name</th>
+                        <th>Actions</th>
+
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for spider in spiders %}
+                        <tr>
+                            <td id={{ project }}>
+                                <a href="#" onclick="" id= {{ spider }}>{{ spider }}</a>
+                            </td>
+                            <td >
+                                <button class="btn" type="submit" onclick="run_spider('{{project}}','{{spider}}','schedule')" id=start name= {{ project }}>Schedule Spider</button>
+                                <button class="btn" type="submit" onclick="run_spider('{{project}}','{{spider}}','stop')" id=stop name= {{ project }}>Stop Spider</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+<div id="box-config-modal" class="modal hide fade in">
+</div>
+
+
+<script type="text/javascript">
+
+    function run_spider(project, spider ,action) {
+
+        var data = {
+            'project': project,
+            'spider': spider,
+            'action':action,
+            'cache':'False',
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
+        };
+        if (action=='schedule'){
+        if(confirm("Do you want to run spider on previous cache ?")){
+            data['cache']='True';
+        }
+        }
+
+        $.ajax({
+            data: data,
+            type: "POST",
+            url: "/projects/spiders",
+            success: function (response) {
+                $("#box-config-modal").html(response).modal('show');
+            }
+        });
+    }
+
+</script>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block login %}
+    <form action="/login" method="post">{% csrf_token %}
+        {% for field in auth_form %}
+        {{ field }}
+        {% endfor %}
+        <button class="btn btn-primary" type="submit" id="btnLogIn" value="Log In">Log In </button>
+    </form>
+{% endblock %}
+
+
+{% block signup %}
+
+
+<div class="panel right">
+    <h1>Sign Up</h1>
+        <form action="/signup" method="post">{% csrf_token %}
+            {{ user_form.as_p }}
+            <input type="submit" value="Create Account">
+        </form>
+
+</div>
+{% endblock %}

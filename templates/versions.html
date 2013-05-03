@@ -1,0 +1,53 @@
+<table class="table table-condensed">
+    {% if version %}
+        <tr>
+            <td>
+                latest_version
+            </td>
+            <td>
+                {{ version }}
+
+            </td>
+
+            <td>
+                <button class="btn btn-danger" type="submit"
+                        onclick="confirm_deletion('{{ project }}','version','{{ version }}')"
+                        id={{ version }}>
+                    Delete
+
+                </button>
+            </td>
+        </tr>
+
+        <tr id="view_versions">
+            <td>
+                <a href="javascript:void(0);" onclick="get_versions(this.id);" id={{ id }}>View All Versions</a>
+            </td>
+        </tr>
+
+    {% endif %}
+
+    {% if versions %}
+        <thead>
+        Older Versions Are
+        </thead>
+        {% for version in versions %}
+            <tr>
+            <td>
+                {{ version }}
+            </td>
+
+            <td>
+
+                <button class="btn btn-danger" type="submit"
+                        id={{ version }} name= {{ version }}
+                        onclick="confirm_deletion('{{ project }}','version','{{ version }}')">
+                    Delete
+
+                </button>
+            </td>
+
+        {% endfor %}
+    {% endif %}
+
+</table>
