@@ -50,9 +50,9 @@
             'csrfmiddlewaretoken': '{{ csrf_token }}'
         };
         if (action=='schedule'){
-        if(confirm("Do you want to run spider on previous cache ?")){
-            data['cache']='True';
-        }
+            if(confirm("Do you want to run spider on previous cache ?")){
+                data['cache']='True';
+            }
         }
 
         $.ajax({

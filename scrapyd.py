@@ -3,6 +3,7 @@ from urlparse import urljoin
 import requests
 
 
+
 class scrapyd_exception(Exception):
     def __init__(self, message=None):
         self.message = message
@@ -79,7 +80,7 @@ class scrapyd(object):
         else:
             raise scrapyd_exception(' Project Not found Named %s' % project)
 
-    def run_spider(self, project, spider_name, cache="False"):
+    def run_spider(self, project, spider_name,cache_server, cache="False"):
         """
         if successful return job id , else Exception
         """

@@ -1,4 +1,4 @@
-<table class="table table-condensed">
+<table class="table table-condensed" id='version_table'>
     {% if version %}
         <tr>
             <td>
@@ -8,6 +8,7 @@
                 {{ version }}
 
             </td>
+
 
             <td>
                 <button class="btn btn-danger" type="submit"
@@ -21,16 +22,14 @@
 
         <tr id="view_versions">
             <td>
-                <a href="javascript:void(0);" onclick="get_versions(this.id);" id={{ id }}>View All Versions</a>
+                <a href="javascript:void(0);" onclick="get_versions('{{ id }}');" >View All Versions</a>
             </td>
         </tr>
 
     {% endif %}
 
     {% if versions %}
-        <thead>
-        Older Versions Are
-        </thead>
+
         {% for version in versions %}
             <tr>
             <td>

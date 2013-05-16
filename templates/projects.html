@@ -45,7 +45,7 @@
                 type: "POST",
                 url: "/projects/",
                 success: function (response) {
-                    $('#' + project).replaceWith(response);
+                    $('#' + project.replace('_versions', '')+' tr#view_versions').replaceWith(response);
                 }
             });
         }
@@ -53,6 +53,7 @@
         function confirm_deletion(project,type,version){
 
             msg="Do you want to delete "+type+" ";
+
             if (type=='version'){
 
                 msg=msg+version;
@@ -76,7 +77,13 @@
                     type: "POST",
                     url: "/projects/",
                     success: function (response) {
-                        $('#project_list').replaceWith(response);
+                        if(type=='project'){
+                        $('#project_list').replaceWith(response);}
+                       if(type=='version'){
+                            $('#' + project + " table"+'#version_table').remove();
+                            $('#' + project).append(response);
+                            $('#' + project + " tr"+"#view_versions").remove()
+                        }
                     }
                 });
             }
