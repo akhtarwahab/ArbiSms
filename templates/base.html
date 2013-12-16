@@ -19,13 +19,16 @@
         body {
             padding-top: 60px;
             padding-bottom: 40px;
+            background: linear-gradient(to top,#6C91DA, #BECEEF);
+
         }
+
     </style>
 
 </head>
 <body>
 <header>
-    <div class="navbar navbar-fixed-top">
+    <div class="navbar navbar-fixed-top" >
         <div class="navbar-inner">
             <div class="container-fluid">
                 <div class="row-fluid">
@@ -34,20 +37,21 @@
                 </div>
 
                 <p class="brand">
-
-                    ArbiSMS</p>
+                    ArbiSMS Tool</p>
                 {% block login %}
                     <a class="brand" href="/">Home</a>
+{#                    <img src="{{ STATIC_URL }}gfx/users.png">#}
                     <form action="/logout">
                         <button class="pull-right " type="submit" id="btnLogOut" value="Log Out">Log Out</button>
                     </form>
+
                 {% endblock %}
             </div>
         </div>
     </div>
 </header>
 
-<div class="row-fluid">
+<div class="row-fluid" style="background-color:#FFDDDD;>
     <div class="span12">
     </div>
 
@@ -66,7 +70,7 @@
                 {% endblock %}
             </div>
 
-            <div class="span4">
+            <div class="span4" style="background-color:#FFDDDD;">
                 {% block flash %}
                     {% if auth_form.non_field_errors or user_form.non_field_errors%}
                         <div class="flash error">
@@ -82,7 +86,7 @@
                     {% endif %}
                 {% endblock %}
                 {% block signup %}
-                    <div class="panel right">
+                    <div class="panel right" style="background-color:#FFDDDD;">
                         <h1>Add Server</h1>
 
                         <form action="/submit" method="post">
@@ -102,6 +106,14 @@
    </div>
     </div>
 
+
+
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="span12">
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="footer">
